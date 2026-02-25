@@ -35,3 +35,29 @@ python -c "from countercase.ingestion.metadata_extractor import inspect_metadata
 ```
 
 Output: `countercase/data/metadata_inspection.json`
+
+## Phase 2 -- Retrieval Enhancements
+
+### Run full Phase 2 pipeline (six-stage retrieval + ablation comparison + mini evaluation)
+
+```powershell
+python -m countercase.pipeline_phase2
+```
+
+### Run with a custom query
+
+```powershell
+python -m countercase.pipeline_phase2 "writ petition Article 21 right to life"
+```
+
+### Run evaluation harness on a test set
+
+```powershell
+python -m countercase.evaluation.eval_harness --test-set countercase/data/test_set.json --output countercase/data/eval_report.json
+```
+
+### Run specific ablation modes only
+
+```powershell
+python -m countercase.evaluation.eval_harness --test-set countercase/data/test_set.json --modes full_system chroma_only dpr_only
+```

@@ -35,6 +35,13 @@ class DualIndex:
         self.dpr = dpr_index or DPRIndexWrapper()
         self.chroma = chroma_index or ChromaIndexWrapper()
 
+        # Auto-load persisted DPR index if files exist on disk.
+        # ChromaDB auto-loads via PersistentClient; DPR/FAISS does not.
+        dpr_faiss = self.dpr._index_dir / "dpr.faiss"
+        if self.dpr._index is None and dpr_faiss.exists():
+            logger.info("Auto-loading DPR index from %s", self.dpr._index_dir)
+            self.dpr.load()
+
     # -----------------------------------------------------------------
     # Indexing
     # -----------------------------------------------------------------

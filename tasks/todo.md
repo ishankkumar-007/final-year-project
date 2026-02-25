@@ -15,9 +15,16 @@
 - [x] Verification: Smoke test on 10 PDFs from 2024 -- all checks pass
 
 ## Phase 2 -- Retrieval Enhancements
-- [ ] 2.1 MMR implementation
-- [ ] 2.2 Cross-encoder re-ranking
-- [ ] 2.3 Hybrid retriever
-- [ ] 2.4 Evaluation harness
-- [ ] 2.5 Update requirements.txt
-- [ ] 2.6 Pipeline script (pipeline_phase2.py)
+- [x] 2.1 MMR implementation (countercase/retrieval/mmr.py)
+- [x] 2.2 Cross-encoder re-ranking (countercase/retrieval/reranker.py)
+- [x] 2.3 Hybrid retriever (countercase/retrieval/hybrid_retriever.py)
+- [x] 2.4 Evaluation harness (countercase/evaluation/metrics.py, eval_harness.py)
+- [x] 2.5 Update requirements.txt (added scipy)
+- [x] 2.6 Pipeline script (countercase/pipeline_phase2.py)
+- [x] Verification: Full pipeline on 159 indexed chunks -- MMR diversifies, cross-encoder reorders, eval harness runs 5 queries × 3 modes
+
+## Phase 3 -- Fact Sheet Extraction
+- [ ] 3.1 Rule-based section detection for Facts section
+- [ ] 3.2 LLM-based fact sheet population
+- [ ] 3.3 Fact sheet database
+- [ ] 3.4 NER-based perturbation candidate tagging
