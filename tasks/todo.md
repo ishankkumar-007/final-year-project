@@ -24,7 +24,11 @@
 - [x] Verification: Full pipeline on 159 indexed chunks -- MMR diversifies, cross-encoder reorders, eval harness runs 5 queries × 3 modes
 
 ## Phase 3 -- Fact Sheet Extraction
-- [ ] 3.1 Rule-based section detection for Facts section
-- [ ] 3.2 LLM-based fact sheet population
-- [ ] 3.3 Fact sheet database
-- [ ] 3.4 NER-based perturbation candidate tagging
+- [x] 3.1 Pydantic fact sheet schema (schema.py: FactSheet, PartyInfo, EvidenceItem, NumericalFacts)
+- [x] 3.2 Section locator (section_locator.py: 3-strategy facts section extraction)
+- [x] 3.3 LLM-based fact sheet extractor (fact_sheet_extractor.py: mock/local/API backends)
+- [x] 3.4 NER tagger for perturbation candidates (ner_tagger.py: 6 entity types, regex-based)
+- [x] 3.5 Fact store (fact_store.py: JSON file storage with round-trip verification)
+- [x] 3.6 Pipeline script (pipeline_phase3.py: end-to-end with early termination)
+- [x] 3.7 Requirements update (pydantic, openai, requests)
+- [x] Verification: 10/10 facts sections found (100%), 10/10 extractions OK, 215+ NER spans, fact store round-trip OK

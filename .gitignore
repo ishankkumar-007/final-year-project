@@ -33,6 +33,7 @@ Desktop.ini
 # Data / model artifacts
 countercase/data/chroma/
 countercase/data/dpr_index/
+countercase/data/fact_store/
 countercase/data/metadata_inspection.json
 *.faiss
 *.pkl
