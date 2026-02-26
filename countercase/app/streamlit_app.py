@@ -316,12 +316,17 @@ def _page_retrieval_results() -> None:
         hide_index=True,
     )
 
-    # Expandable full text
-    st.subheader("Result details")
+    # Per-result explanations
+    st.subheader("Result details with explanations")
+    _explanations = _generate_per_result_explanations(root.fact_sheet, results)
     for idx, r in enumerate(results):
         text = _get_result_field(r, "text", "")
         case_id = _get_result_field(r, "case_id", f"Result {idx + 1}")
+        chunk_id = str(_get_result_field(r, "chunk_id", ""))
         with st.expander(f"Rank {idx + 1}: {case_id}"):
+            expl = _explanations.get(chunk_id, "")
+            if expl:
+                st.info(expl)
             st.text(text[:2000] if text else "(no text)")
 
 
@@ -464,8 +469,8 @@ def _page_diff_view() -> None:
         rows = []
         all_ids = list(dict.fromkeys(parent_ids + child_ids))
         for cid in all_ids:
-            p_rank = p_rank_map.get(cid, "-")
-            c_rank = c_rank_map.get(cid, "-")
+            p_rank = str(p_rank_map[cid]) if cid in p_rank_map else "-"
+            c_rank = str(c_rank_map[cid]) if cid in c_rank_map else "-"
             if cid in diff.dropped_cases:
                 status = "DROPPED"
             elif cid in diff.new_cases:
@@ -493,6 +498,24 @@ def _page_diff_view() -> None:
 
         styled = df.style.apply(_color_status, axis=1)
         st.dataframe(styled, width="stretch", hide_index=True)
+
+        # Counterfactual summary
+        from countercase.counterfactual.sensitivity import compute_diff as _cd
+        from countercase.explanation.counterfactual_summary import (
+            explain_edge as _explain_edge,
+        )
+        _diff = _cd(
+            parent_node.retrieval_results or [],
+            child_node.retrieval_results or [],
+            k=10,
+        )
+        summary = _explain_edge(parent_node, child_node, _diff)
+        if summary:
+            st.markdown("### Counterfactual Summary")
+            st.markdown(summary)
+
+    # Export button
+    _render_export_button(tree)
 
 
 # ===================================================================
@@ -712,6 +735,60 @@ def _apply_manual_edit(
 
     except Exception as exc:
         st.error(f"Failed to apply edit: {exc}")
+
+
+# ===================================================================
+# Explanation helpers
+# ===================================================================
+
+def _generate_per_result_explanations(
+    fact_sheet: Any, results: list[Any],
+) -> dict[str, str]:
+    """Generate per-result explanations for a list of results."""
+    try:
+        from countercase.explanation.per_result import explain_results
+        return explain_results(fact_sheet, results)
+    except Exception as exc:
+        logger.warning("Could not generate explanations: %s", exc)
+        return {}
+
+
+def _render_export_button(tree: Any) -> None:
+    """Render export buttons for JSON and Markdown download."""
+    st.markdown("---")
+    st.subheader("Export")
+
+    col1, col2 = st.columns(2)
+
+    try:
+        from countercase.counterfactual.sensitivity import compute_sensitivity_scores
+        from countercase.explanation.output_formatter import (
+            format_tree_output,
+            generate_text_summary,
+        )
+
+        scores = compute_sensitivity_scores(tree, k=10)
+        tree_json = format_tree_output(tree, sensitivity_scores=scores, k=10)
+
+        json_str = json.dumps(tree_json, indent=2, ensure_ascii=False)
+        md_str = generate_text_summary(tree_json)
+
+        with col1:
+            st.download_button(
+                label="Download JSON",
+                data=json_str,
+                file_name="countercase_output.json",
+                mime="application/json",
+            )
+        with col2:
+            st.download_button(
+                label="Download Markdown report",
+                data=md_str,
+                file_name="countercase_report.md",
+                mime="text/markdown",
+            )
+    except Exception as exc:
+        st.warning(f"Export unavailable: {exc}")
 
 
 # ===================================================================

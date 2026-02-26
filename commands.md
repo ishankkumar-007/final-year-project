@@ -145,3 +145,30 @@ streamlit run countercase/app/streamlit_app.py
 ```
 
 Output: perturbation tree saved to `countercase/output/phase5_tree.json`
+## Phase 6 -- Explanation Engine and Output Format
+
+### Run Phase 6 pipeline (explanations, JSON + Markdown export)
+
+```powershell
+python -m countercase.pipeline_phase6
+```
+
+### Load a specific case from the fact store
+
+```powershell
+python -m countercase.pipeline_phase6 --case-id "Criminal Appeal 1031/2024"
+```
+
+### Control tree depth
+
+```powershell
+python -m countercase.pipeline_phase6 --max-depth 2 --max-children 5
+```
+
+### Launch the Streamlit UI (includes export buttons)
+
+```powershell
+streamlit run countercase/app/streamlit_app.py
+```
+
+Output: `countercase/output/phase6_tree.json`, `countercase/output/phase6_report.md`
