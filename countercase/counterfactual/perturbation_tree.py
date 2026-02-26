@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import json
 import logging
+import time
+from collections import deque
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -316,6 +318,194 @@ class PerturbationTree:
             )
 
         return child_ids
+
+    def expand_tree(
+        self,
+        validator: PerturbationValidator,
+        max_depth: int = 3,
+        max_children_per_node: int = 5,
+        min_displacement_threshold: float = 1.0,
+    ) -> None:
+        """Breadth-first expansion of the tree up to *max_depth*.
+
+        For each node at the current frontier, compute the diff vs its
+        parent.  If the ``mean_displacement`` is below
+        *min_displacement_threshold* the node is pruned (not expanded
+        further).  Expansion is interruptible via ``KeyboardInterrupt``;
+        on interrupt the partial tree is preserved.
+
+        Args:
+            validator: LLM validation filter.
+            max_depth: Maximum tree depth (root is depth 0).
+            max_children_per_node: Children cap per node.
+            min_displacement_threshold: Minimum mean displacement to
+                justify further expansion.
+        """
+        from countercase.counterfactual.sensitivity import compute_diff
+
+        if self.root_id is None:
+            logger.warning("expand_tree called on empty tree -- nothing to do")
+            return
+
+        # Frontier: list of (node_id, depth)
+        frontier: deque[tuple[int, int]] = deque()
+        root = self._nodes[self.root_id]
+
+        # Depth 0 is the root -- expand it to get Level 1 children
+        if not root.children_ids:
+            logger.info("Expanding root to depth 1")
+            t0 = time.perf_counter()
+            try:
+                self.expand_node(
+                    self.root_id, validator, max_children=max_children_per_node,
+                )
+            except KeyboardInterrupt:
+                logger.warning("Interrupted during root expansion -- returning partial tree")
+                return
+            elapsed = time.perf_counter() - t0
+            logger.info(
+                "Depth 1 expansion: %d children in %.1fs",
+                len(root.children_ids),
+                elapsed,
+            )
+
+        # Seed frontier with Level 1 nodes (depth 1)
+        for cid in root.children_ids:
+            frontier.append((cid, 1))
+
+        current_depth = 1
+        while frontier and current_depth < max_depth:
+            next_frontier: deque[tuple[int, int]] = deque()
+            level_start = time.perf_counter()
+            expanded_count = 0
+            pruned_count = 0
+
+            while frontier:
+                node_id, depth = frontier.popleft()
+                if depth != current_depth:
+                    # Belongs to a deeper level -- re-queue
+                    next_frontier.append((node_id, depth))
+                    continue
+
+                node = self._nodes[node_id]
+                parent = self._nodes[node.parent_id] if node.parent_id is not None else None
+
+                # Compute diff vs parent for pruning decision
+                if parent is not None and parent.retrieval_results and node.retrieval_results:
+                    diff = compute_diff(
+                        parent.retrieval_results,
+                        node.retrieval_results,
+                        k=self._top_k,
+                    )
+                    if diff.mean_displacement < min_displacement_threshold:
+                        pruned_count += 1
+                        logger.debug(
+                            "Pruning node %d: mean_displacement=%.2f < %.2f",
+                            node_id,
+                            diff.mean_displacement,
+                            min_displacement_threshold,
+                        )
+                        continue
+
+                # Expand this node
+                try:
+                    new_children = self.expand_node(
+                        node_id, validator, max_children=max_children_per_node,
+                    )
+                except KeyboardInterrupt:
+                    logger.warning(
+                        "Interrupted during expansion of node %d -- returning partial tree",
+                        node_id,
+                    )
+                    return
+
+                expanded_count += 1
+                for child_id in new_children:
+                    next_frontier.append((child_id, depth + 1))
+
+            level_elapsed = time.perf_counter() - level_start
+            logger.info(
+                "Depth %d -> %d: expanded %d nodes, pruned %d, total nodes %d (%.1fs)",
+                current_depth,
+                current_depth + 1,
+                expanded_count,
+                pruned_count,
+                self.node_count,
+                level_elapsed,
+            )
+
+            frontier = next_frontier
+            current_depth += 1
+
+        logger.info(
+            "Tree expansion complete: %d total nodes, max depth reached = %d",
+            self.node_count,
+            current_depth,
+        )
+
+    def add_manual_node(
+        self,
+        parent_id: int,
+        edited_fact_sheet: FactSheet,
+        description: str = "Manual edit",
+    ) -> int:
+        """Create a child node from a user-edited fact sheet.
+
+        Runs retrieval on the edited fact sheet and attaches the node
+        to the tree as a child of *parent_id*.
+
+        Args:
+            parent_id: ID of the parent node.
+            edited_fact_sheet: User-modified fact sheet.
+            description: Human-readable description of the edit.
+
+        Returns:
+            The new child node ID.
+        """
+        parent = self._nodes[parent_id]
+        edge = PerturbationEdge(
+            fact_type=FactType.Numerical,  # generic placeholder
+            original_value="(manual)",
+            perturbed_value="(manual)",
+            description=description,
+        )
+
+        child_id = self._allocate_id()
+        child = TreeNode(
+            node_id=child_id,
+            fact_sheet=edited_fact_sheet,
+            parent_id=parent_id,
+            edge=edge,
+        )
+        child.retrieval_results = self._run_retrieval(edited_fact_sheet)
+        self._nodes[child_id] = child
+        parent.children_ids.append(child_id)
+
+        logger.info(
+            "Manual node %d created under parent %d: %s (%d results)",
+            child_id,
+            parent_id,
+            description,
+            len(child.retrieval_results) if child.retrieval_results else 0,
+        )
+        return child_id
+
+    def get_depth(self, node_id: int) -> int:
+        """Return the depth of a node (root = 0)."""
+        depth = 0
+        nid = node_id
+        while self._nodes[nid].parent_id is not None:
+            nid = self._nodes[nid].parent_id
+            depth += 1
+        return depth
+
+    def get_all_edges(self) -> list[tuple[int, PerturbationEdge]]:
+        """Return all (node_id, edge) pairs for non-root nodes."""
+        return [
+            (node.node_id, node.edge)
+            for node in self._nodes.values()
+            if node.edge is not None
+        ]
 
     # -----------------------------------------------------------------
     # Serialization

@@ -28,3 +28,11 @@
 - **Pydantic model_dump for deep copy**: Use `fs.model_dump()` + `FactSheet.model_validate(data)` for reliable deep copies of Pydantic models rather than `copy.deepcopy()` which can struggle with Pydantic v2 internals.
 - **Section adjacency requires normalised keys**: The adjacency map keys must match the exact normalised format in FactSheet.sections_cited. If NER span text is "Section 302 of IPC" but fact sheet stores "IPC-302", a normalisation step (`_find_matching_section`) is needed to bridge them.
 - **Mock validator accepts all by default**: When no real LLM is available, the validator accepts all perturbations. This is correct for testing tree structure but means Phase 5+ must test with a real or more selective mock to verify rejection filtering.
+
+## Phase 5
+
+- **BFS expansion with displacement-based pruning**: expand_tree uses a deque frontier processed layer-by-layer. Nodes with mean_displacement below threshold are pruned, which prevents expanding irrelevant branches. With retriever=None all displacements are 0.0 so no pruning occurs -- confirmed that pruning logic works correctly with injected mock results.
+- **TYPE_CHECKING guard for circular imports**: sensitivity.py imports PerturbationTree only for type hints. Using `TYPE_CHECKING` guard avoids circular import (perturbation_tree.py imports sensitivity.py for compute_diff in expand_tree).
+- **Sensitivity scores need retrieval results**: All four dimension scores are 0.0 when retriever is None. With mock injected results, Numerical=0.70 while others=0.0 since only Numerical edges were created. This is correct behavior.
+- **Streamlit session_state for tree persistence**: The tree must be stored in st.session_state to survive page switches. Using @st.cache_resource only for heavy objects like the retriever.
+- **Streamlit sys.path fix required**: Streamlit runs scripts from its own process and does not inherit the project directory on sys.path. Must add `sys.path.insert(0, project_root)` at the top of the app file before any `countercase` imports, using `Path(__file__).resolve().parents[2]` to locate the project root.

@@ -42,3 +42,12 @@
 - [x] 4.6 Pipeline script (pipeline_phase4.py: end-to-end with sample fact sheet)
 - [x] 4.7 No new requirements needed (all deps already present)
 - [x] Verification: 29 perturbations for sample case, IPC-302 adjacent=[300,304,304A,307], diff correct, tree round-trip OK
+
+## Phase 5 -- Multi-Level Tree, Sensitivity Scoring, and UI
+- [x] 5.1 Multi-level tree expansion (expand_tree: BFS, pruning by displacement threshold, interruptible)
+- [x] 5.2 Aggregate sensitivity scoring (compute_sensitivity_scores, compute_per_case_sensitivity)
+- [x] 5.3 Manual node editing (add_manual_node, get_depth, get_all_edges)
+- [x] 5.4 Streamlit UI (6 pages: Query Input, Retrieval Results, Perturbation Tree, Diff View, Sensitivity Dashboard, Manual Edit)
+- [x] 5.5 Update requirements.txt (added streamlit, plotly)
+- [x] 5.6 Pipeline script (pipeline_phase5.py: depth-3 tree, sensitivity, manual edit, export)
+- [x] Verification: depth-2 tree=13 nodes, sensitivity Numerical=0.70 (with mock results), manual node OK, round-trip OK, streamlit syntax OK

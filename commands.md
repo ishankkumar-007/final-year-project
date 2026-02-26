@@ -111,3 +111,37 @@ python -m countercase.pipeline_phase4 --max-children 8
 ```
 
 Output: perturbation tree saved to `countercase/output/phase4_tree.json`
+
+## Phase 5 -- Multi-Level Tree, Sensitivity Scoring, and UI
+
+### Run Phase 5 pipeline with default settings (depth 3)
+
+```powershell
+python -m countercase.pipeline_phase5
+```
+
+### Load a fact sheet from the fact store
+
+```powershell
+python -m countercase.pipeline_phase5 --case-id "Criminal Appeal 1031/2024"
+```
+
+### Control tree depth and branching
+
+```powershell
+python -m countercase.pipeline_phase5 --max-depth 2 --max-children 3
+```
+
+### Set displacement threshold for pruning
+
+```powershell
+python -m countercase.pipeline_phase5 --min-displacement 0.5
+```
+
+### Launch the Streamlit UI
+
+```powershell
+streamlit run countercase/app/streamlit_app.py
+```
+
+Output: perturbation tree saved to `countercase/output/phase5_tree.json`

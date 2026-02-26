@@ -7,8 +7,12 @@ quantify the impact of each fact change.
 from __future__ import annotations
 
 import logging
+from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from countercase.counterfactual.perturbation_tree import PerturbationTree
 
 logger = logging.getLogger(__name__)
 
@@ -134,3 +138,124 @@ def compute_diff(
         rank_displacements=displacements,
         mean_displacement=mean_disp,
     )
+
+
+# -------------------------------------------------------------------
+# Aggregate sensitivity scoring
+# -------------------------------------------------------------------
+
+def compute_sensitivity_scores(
+    tree: PerturbationTree,
+    k: int = 10,
+) -> dict[str, float]:
+    """Compute aggregate sensitivity per fact dimension.
+
+    For each fact type (Numerical, Section, PartyType, Evidence),
+    collect all edges in the tree where that fact type was perturbed,
+    compute the mean rank displacement across those edges, and return
+    a dict mapping fact type name to its aggregate sensitivity score.
+
+    Args:
+        tree: A populated perturbation tree.
+        k: Top-K size for diff computation.
+
+    Returns:
+        Dict mapping fact type name (str) to mean displacement (float).
+    """
+    displacements_by_type: dict[str, list[float]] = defaultdict(list)
+
+    for node_id, edge in tree.get_all_edges():
+        node = tree.get_node(node_id)
+        parent_id = node.parent_id
+        if parent_id is None:
+            continue
+        parent = tree.get_node(parent_id)
+
+        parent_results = parent.retrieval_results or []
+        child_results = node.retrieval_results or []
+
+        if not parent_results and not child_results:
+            continue
+
+        diff = compute_diff(parent_results, child_results, k=k)
+        displacements_by_type[edge.fact_type.value].append(
+            diff.mean_displacement,
+        )
+
+    scores: dict[str, float] = {}
+    for fact_type_name, values in displacements_by_type.items():
+        scores[fact_type_name] = sum(values) / len(values) if values else 0.0
+
+    # Ensure all four canonical fact types are present (with 0.0 default)
+    for canonical in ("Numerical", "Section", "PartyType", "Evidence"):
+        scores.setdefault(canonical, 0.0)
+
+    logger.info("Sensitivity scores: %s", scores)
+    return scores
+
+
+def compute_per_case_sensitivity(
+    tree: PerturbationTree,
+    case_id: str,
+    k: int = 10,
+) -> dict[str, Any]:
+    """Compute how a specific case's rank changes across perturbation paths.
+
+    For every parent-child pair in the tree whose results contain
+    *case_id*, record the rank in each set and the perturbation that
+    caused the change.
+
+    Args:
+        tree: A populated perturbation tree.
+        case_id: The case_id to track.
+        k: Top-K size for rank extraction.
+
+    Returns:
+        Dict with:
+            - ``appearances``: total count of nodes whose top-K contains
+              the case.
+            - ``rank_by_node``: dict[node_id, rank].
+            - ``displacements``: list of dicts with edge description,
+              parent rank, child rank, and displacement.
+    """
+    rank_by_node: dict[int, int] = {}
+
+    for nid, node in tree._nodes.items():
+        results = node.retrieval_results or []
+        ids = _extract_case_ids(results, k)
+        if case_id in ids:
+            rank_by_node[nid] = ids.index(case_id) + 1
+
+    displacements: list[dict[str, Any]] = []
+    for node_id, edge in tree.get_all_edges():
+        node = tree.get_node(node_id)
+        parent_id = node.parent_id
+        if parent_id is None:
+            continue
+        p_rank = rank_by_node.get(parent_id)
+        c_rank = rank_by_node.get(node_id)
+        if p_rank is None and c_rank is None:
+            continue  # case not in either set
+        p_rank_val = p_rank if p_rank is not None else k + 1
+        c_rank_val = c_rank if c_rank is not None else k + 1
+        disp = abs(p_rank_val - c_rank_val)
+        status = "stable"
+        if p_rank is not None and c_rank is None:
+            status = "dropped"
+        elif p_rank is None and c_rank is not None:
+            status = "new"
+        displacements.append({
+            "edge_description": edge.description,
+            "fact_type": edge.fact_type.value,
+            "parent_rank": p_rank_val,
+            "child_rank": c_rank_val,
+            "displacement": disp,
+            "status": status,
+        })
+
+    return {
+        "case_id": case_id,
+        "appearances": len(rank_by_node),
+        "rank_by_node": rank_by_node,
+        "displacements": displacements,
+    }
