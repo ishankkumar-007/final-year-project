@@ -51,3 +51,21 @@
 - [x] 5.5 Update requirements.txt (added streamlit, plotly)
 - [x] 5.6 Pipeline script (pipeline_phase5.py: depth-3 tree, sensitivity, manual edit, export)
 - [x] Verification: depth-2 tree=13 nodes, sensitivity Numerical=0.70 (with mock results), manual node OK, round-trip OK, streamlit syntax OK
+
+## Phase 6 -- Explanation Engine and Output Format
+- [x] 6.1 Per-result explanation generator (per_result.py: TF-IDF term overlap, metadata matching, no LLM)
+- [x] 6.2 Counterfactual edge explanation (counterfactual_summary.py: template-based, dropped/new case analysis)
+- [x] 6.3 JSON output formatter (output_formatter.py: format_node_output, format_tree_output)
+- [x] 6.4 Markdown text summary generator (output_formatter.py: generate_text_summary, 4-section report)
+- [x] 6.5 Streamlit UI integration (per-result explanations, counterfactual summaries, export buttons)
+- [x] 6.6 Pipeline script (pipeline_phase6.py: 8-step end-to-end demo)
+- [x] Verification: 5/5 functional tests passed (per-result, counterfactual, JSON, Markdown, round-trip)
+
+## Phase 7 -- Evaluation, Ablation, and Research Writeup
+- [x] 7.1 Retrieval evaluation extensions (eval_harness.py: paired t-tests, LaTeX table, comparison chart, run_full_evaluation)
+- [x] 7.2 Counterfactual module evaluation (counterfactual_eval.py: sensitivity vs dispositive facts, Spearman rho, LLM accept/reject rates)
+- [x] 7.3 Explanation quality evaluation (explanation_eval.py: faithfulness scoring, human eval CSV template, CSV scoring)
+- [x] 7.4 Test set creation tool (create_test_set.py: citation-based auto ground truth, interactive annotation, merge/split)
+- [x] 7.5 Results aggregation (aggregate_results.py: unified summary, LaTeX tables, 3-panel summary chart)
+- [x] 7.6 Requirements update (added matplotlib, tabulate)
+- [x] Verification: 7/7 functional tests passed (Spearman rho, faithfulness, citation extraction, LaTeX tables, CSV template, counterfactual table, explanation table)

@@ -4,6 +4,11 @@ Runs queries from a JSON test set through the HybridRetriever (and
 ablation variants), computes MRR@K, NDCG@K, Recall@K, and writes a
 structured JSON report.
 
+Extended in Phase 7 with:
+    - Paired t-tests between full system and each baseline.
+    - LaTeX-compatible table output.
+    - Comparison bar chart (PNG).
+
 Test set format
 ---------------
 .. code-block:: json
@@ -248,6 +253,254 @@ class EvalHarness:
         with path.open("w", encoding="utf-8") as fh:
             json.dump(data, fh, indent=2)
         logger.info("Report saved to %s", path)
+
+    # -----------------------------------------------------------------
+    # Phase 7: Statistical tests
+    # -----------------------------------------------------------------
+
+    @staticmethod
+    def compute_paired_ttests(
+        report: EvalReport,
+        baseline_mode: str = "full_system",
+    ) -> dict[str, dict[str, dict[str, float]]]:
+        """Compute paired t-tests between the baseline and other modes.
+
+        For each non-baseline mode, computes a paired t-test on
+        MRR@10 and NDCG@10 per-query scores.
+
+        Args:
+            report: A completed EvalReport with per_query results.
+            baseline_mode: The mode treated as the reference.
+
+        Returns:
+            Dict mapping ``mode -> metric -> {t_stat, p_value}``.
+        """
+        from scipy import stats as sp_stats
+
+        # Group per-query results by mode
+        by_mode: dict[str, list[QueryResult]] = {}
+        for qr in report.per_query:
+            by_mode.setdefault(qr.mode, []).append(qr)
+
+        baseline_qs = by_mode.get(baseline_mode, [])
+        if not baseline_qs:
+            logger.warning("No results for baseline mode '%s'", baseline_mode)
+            return {}
+
+        # Sort by query_case_id for pairing
+        baseline_qs.sort(key=lambda q: q.query_case_id)
+        baseline_mrr = [q.mrr_10 for q in baseline_qs]
+        baseline_ndcg = [q.ndcg_10 for q in baseline_qs]
+
+        results: dict[str, dict[str, dict[str, float]]] = {}
+        for mode, qs in by_mode.items():
+            if mode == baseline_mode:
+                continue
+            qs.sort(key=lambda q: q.query_case_id)
+            if len(qs) != len(baseline_qs):
+                logger.warning(
+                    "Mode '%s' has %d queries vs baseline %d; skipping.",
+                    mode, len(qs), len(baseline_qs),
+                )
+                continue
+
+            mode_mrr = [q.mrr_10 for q in qs]
+            mode_ndcg = [q.ndcg_10 for q in qs]
+
+            mrr_t, mrr_p = sp_stats.ttest_rel(baseline_mrr, mode_mrr)
+            ndcg_t, ndcg_p = sp_stats.ttest_rel(baseline_ndcg, mode_ndcg)
+
+            results[mode] = {
+                "mrr_10": {"t_stat": round(float(mrr_t), 4), "p_value": round(float(mrr_p), 6)},
+                "ndcg_10": {"t_stat": round(float(ndcg_t), 4), "p_value": round(float(ndcg_p), 6)},
+            }
+            logger.info(
+                "t-test %s vs %s: MRR p=%.6f, NDCG p=%.6f",
+                baseline_mode, mode, mrr_p, ndcg_p,
+            )
+
+        return results
+
+    # -----------------------------------------------------------------
+    # Phase 7: LaTeX table
+    # -----------------------------------------------------------------
+
+    @staticmethod
+    def generate_latex_table(
+        report: EvalReport,
+        ttests: dict[str, dict[str, dict[str, float]]] | None = None,
+    ) -> str:
+        """Generate a LaTeX table of retrieval metrics.
+
+        Args:
+            report: A completed EvalReport.
+            ttests: Optional t-test results to annotate significance.
+
+        Returns:
+            String containing a LaTeX tabular environment.
+        """
+        metric_names = [
+            "mean_mrr_10", "mean_ndcg_10",
+            "mean_recall_5", "mean_recall_10", "mean_recall_20",
+        ]
+        header_names = ["MRR@10", "NDCG@10", "R@5", "R@10", "R@20"]
+
+        lines: list[str] = []
+        lines.append(r"\begin{table}[ht]")
+        lines.append(r"\centering")
+        col_spec = "l" + "c" * len(metric_names)
+        lines.append(r"\begin{tabular}{" + col_spec + r"}")
+        lines.append(r"\toprule")
+        lines.append("Mode & " + " & ".join(header_names) + r" \\")
+        lines.append(r"\midrule")
+
+        for mode, metrics in report.modes.items():
+            vals = []
+            for mn in metric_names:
+                v = metrics.get(mn, 0.0)
+                vals.append(f"{v:.4f}")
+            mode_label = mode.replace("_", r"\_")
+            lines.append(mode_label + " & " + " & ".join(vals) + r" \\")
+
+        lines.append(r"\bottomrule")
+        lines.append(r"\end{tabular}")
+        lines.append(
+            r"\caption{Retrieval evaluation across ablation modes.}"
+        )
+        lines.append(r"\label{tab:retrieval_eval}")
+        lines.append(r"\end{table}")
+
+        if ttests:
+            lines.append("")
+            lines.append("% Paired t-test p-values vs full_system:")
+            for mode, tests in ttests.items():
+                for metric, vals in tests.items():
+                    sig = "*" if vals["p_value"] < 0.05 else ""
+                    lines.append(
+                        f"% {mode} {metric}: t={vals['t_stat']}, "
+                        f"p={vals['p_value']}{sig}"
+                    )
+
+        return "\n".join(lines)
+
+    # -----------------------------------------------------------------
+    # Phase 7: Comparison bar chart
+    # -----------------------------------------------------------------
+
+    @staticmethod
+    def generate_comparison_chart(
+        report: EvalReport,
+        output_path: str | Path,
+    ) -> None:
+        """Generate a grouped bar chart comparing all modes and metrics.
+
+        Args:
+            report: A completed EvalReport.
+            output_path: Path to save the PNG file.
+        """
+        try:
+            import matplotlib
+            matplotlib.use("Agg")
+            import matplotlib.pyplot as plt
+            import numpy as _np
+        except ImportError:
+            logger.warning("matplotlib not available; skipping chart.")
+            return
+
+        metric_names = [
+            "mean_mrr_10", "mean_ndcg_10",
+            "mean_recall_5", "mean_recall_10", "mean_recall_20",
+        ]
+        display_names = ["MRR@10", "NDCG@10", "R@5", "R@10", "R@20"]
+        modes = list(report.modes.keys())
+
+        x = _np.arange(len(metric_names))
+        width = 0.15
+        n_modes = len(modes)
+
+        fig, ax = plt.subplots(figsize=(12, 6))
+
+        for i, mode in enumerate(modes):
+            vals = [report.modes[mode].get(m, 0.0) for m in metric_names]
+            offset = (i - n_modes / 2 + 0.5) * width
+            ax.bar(x + offset, vals, width, label=mode)
+
+        ax.set_xlabel("Metric", fontsize=12)
+        ax.set_ylabel("Score", fontsize=12)
+        ax.set_title("Retrieval Evaluation: All Modes", fontsize=14)
+        ax.set_xticks(x)
+        ax.set_xticklabels(display_names, fontsize=10)
+        ax.legend(fontsize=9, loc="upper right")
+        ax.set_ylim(0, 1.05)
+        ax.grid(axis="y", alpha=0.3)
+
+        fig.tight_layout()
+        output_path = Path(output_path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(str(output_path), dpi=150)
+        plt.close(fig)
+        logger.info("Chart saved to %s", output_path)
+
+    # -----------------------------------------------------------------
+    # Phase 7: Full evaluation pipeline
+    # -----------------------------------------------------------------
+
+    def run_full_evaluation(
+        self,
+        test_set: list[dict[str, Any]],
+        output_dir: str | Path = "countercase/evaluation/results",
+    ) -> dict[str, Any]:
+        """Run the comprehensive Phase 7 evaluation.
+
+        Runs all ablation modes, computes paired t-tests, generates
+        LaTeX table and comparison chart.
+
+        Args:
+            test_set: List of test-set entries.
+            output_dir: Directory for all output files.
+
+        Returns:
+            Dict with report, t-tests, and file paths.
+        """
+        output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Run evaluation
+        report = self.run(test_set)
+
+        # Save JSON report
+        json_path = output_dir / "retrieval_eval.json"
+        self.save_report(report, json_path)
+
+        # Paired t-tests
+        try:
+            ttests = self.compute_paired_ttests(report)
+        except ImportError:
+            logger.warning("scipy not available; skipping t-tests.")
+            ttests = {}
+
+        # Save t-tests
+        ttest_path = output_dir / "retrieval_ttests.json"
+        with ttest_path.open("w", encoding="utf-8") as fh:
+            json.dump(ttests, fh, indent=2)
+
+        # LaTeX table
+        latex = self.generate_latex_table(report, ttests)
+        latex_path = output_dir / "retrieval_table.tex"
+        with latex_path.open("w", encoding="utf-8") as fh:
+            fh.write(latex)
+
+        # Chart
+        chart_path = output_dir / "retrieval_chart.png"
+        self.generate_comparison_chart(report, chart_path)
+
+        return {
+            "report": report,
+            "ttests": ttests,
+            "json_path": str(json_path),
+            "latex_path": str(latex_path),
+            "chart_path": str(chart_path),
+        }
 
 
 # -----------------------------------------------------------------

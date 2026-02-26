@@ -172,3 +172,68 @@ streamlit run countercase/app/streamlit_app.py
 ```
 
 Output: `countercase/output/phase6_tree.json`, `countercase/output/phase6_report.md`
+
+## Phase 7 -- Evaluation, Ablation, and Research Writeup
+
+### Run full retrieval evaluation with t-tests, LaTeX, and chart
+
+```powershell
+python -c "
+from countercase.evaluation.eval_harness import EvalHarness
+h = EvalHarness()
+ts = h.load_test_set('countercase/evaluation/data/test_set.json')
+h.run_full_evaluation(ts, output_dir='countercase/evaluation/results')
+"
+```
+
+Output: `countercase/evaluation/results/retrieval_eval.json`, `retrieval_table.tex`, `retrieval_chart.png`
+
+### Run counterfactual module evaluation
+
+```powershell
+python -m countercase.evaluation.counterfactual_eval --eval-set countercase/evaluation/data/cf_eval_set.json --output countercase/evaluation/results/counterfactual_eval.json
+```
+
+### Run explanation faithfulness evaluation
+
+```powershell
+python -m countercase.evaluation.explanation_eval faithfulness --input countercase/evaluation/data/explanations.json --output countercase/evaluation/results/faithfulness.json
+```
+
+### Generate human evaluation CSV template
+
+```powershell
+python -m countercase.evaluation.explanation_eval gen-template --input countercase/evaluation/data/explanations.json --output countercase/evaluation/results/human_eval_template.csv
+```
+
+### Score filled human evaluation CSV
+
+```powershell
+python -m countercase.evaluation.explanation_eval score-human --csv countercase/evaluation/results/human_eval_filled.csv --output countercase/evaluation/results/human_eval_report.json
+```
+
+### Create test set from citation extraction
+
+```powershell
+python -m countercase.evaluation.create_test_set citations --case-texts countercase/data/case_texts.json --output countercase/evaluation/data/citation_test_set.json
+```
+
+### Merge multiple test sets
+
+```powershell
+python -m countercase.evaluation.create_test_set merge countercase/evaluation/data/set1.json countercase/evaluation/data/set2.json --output countercase/evaluation/data/merged.json
+```
+
+### Split test set by year (train/test)
+
+```powershell
+python -m countercase.evaluation.create_test_set split countercase/evaluation/data/merged.json --cutoff 2020
+```
+
+### Aggregate all evaluation results
+
+```powershell
+python -m countercase.evaluation.aggregate_results --results-dir countercase/evaluation/results
+```
+
+Output: `countercase/evaluation/results/unified_summary.json`, `all_tables.tex`, `evaluation_summary.png`
