@@ -21,3 +21,10 @@
 - **Regex monetary amount empty group**: Pattern `Rs\.?\s*([\d,]+)` can match `Rs,` where group(1) is empty string. Always check `if not raw: continue` before `float()` conversion.
 - **Mock LLM is sufficient for testing**: The regex-based mock_llm_fn produces valid Pydantic-validated FactSheet objects by extracting IPC sections, evidence types, monetary amounts, and ages directly from text. This lets the full pipeline run without any LLM dependency.
 - **Section locator 3-strategy design**: Priority order: (1) pre-detected sections from Phase 1, (2) heading-pattern heuristic, (3) first 20% fallback. All 10 test judgments had a detected Facts heading, yielding 100% detection rate on Supreme Court of India judgments.
+
+## Phase 4
+
+- **Pure perturbation functions avoid side effects**: All perturbation functions (perturb_numerical, perturb_section, etc.) are pure -- they deep-copy the fact sheet and return new instances. This makes tree construction safe from aliasing bugs.
+- **Pydantic model_dump for deep copy**: Use `fs.model_dump()` + `FactSheet.model_validate(data)` for reliable deep copies of Pydantic models rather than `copy.deepcopy()` which can struggle with Pydantic v2 internals.
+- **Section adjacency requires normalised keys**: The adjacency map keys must match the exact normalised format in FactSheet.sections_cited. If NER span text is "Section 302 of IPC" but fact sheet stores "IPC-302", a normalisation step (`_find_matching_section`) is needed to bridge them.
+- **Mock validator accepts all by default**: When no real LLM is available, the validator accepts all perturbations. This is correct for testing tree structure but means Phase 5+ must test with a real or more selective mock to verify rejection filtering.

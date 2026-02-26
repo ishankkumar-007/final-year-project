@@ -61,3 +61,53 @@ python -m countercase.evaluation.eval_harness --test-set countercase/data/test_s
 ```powershell
 python -m countercase.evaluation.eval_harness --test-set countercase/data/test_set.json --modes full_system chroma_only dpr_only
 ```
+
+## Phase 3 -- Fact Sheet Extraction and NER
+
+### Run full Phase 3 pipeline (section locator, LLM extraction, NER tagging, fact store)
+
+```powershell
+python -m countercase.pipeline_phase3
+```
+
+### Process a specific year range
+
+```powershell
+python -m countercase.pipeline_phase3 --start-year 2024 --end-year 2025
+```
+
+### Limit number of cases processed
+
+```powershell
+python -m countercase.pipeline_phase3 --max-cases 5
+```
+
+Output: fact sheets saved to `countercase/data/fact_store/`
+
+## Phase 4 -- Perturbation Logic and Single-Level Tree
+
+### Run Phase 4 pipeline with sample fact sheet
+
+```powershell
+python -m countercase.pipeline_phase4
+```
+
+### Load a fact sheet from the fact store by case ID
+
+```powershell
+python -m countercase.pipeline_phase4 --case-id "Criminal Appeal 1031/2024"
+```
+
+### Extract fact sheet from a text file and build tree
+
+```powershell
+python -m countercase.pipeline_phase4 --text path/to/judgment.txt
+```
+
+### Control maximum child perturbations per node
+
+```powershell
+python -m countercase.pipeline_phase4 --max-children 8
+```
+
+Output: perturbation tree saved to `countercase/output/phase4_tree.json`

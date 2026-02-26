@@ -32,3 +32,13 @@
 - [x] 3.6 Pipeline script (pipeline_phase3.py: end-to-end with early termination)
 - [x] 3.7 Requirements update (pydantic, openai, requests)
 - [x] Verification: 10/10 facts sections found (100%), 10/10 extractions OK, 215+ NER spans, fact store round-trip OK
+
+## Phase 4 -- Perturbation Logic and Single-Level Tree
+- [x] 4.1 Perturbation rules (perturbation_rules.py: 4 functions, PerturbationEdge, FactType enum)
+- [x] 4.2 Section adjacency map (section_adjacency.py: IPC, CPC, Constitution, Evidence Act, CrPC, POCSO, NDPS)
+- [x] 4.3 LLM validation filter (llm_validator.py: PerturbationValidator with cache, mock validator)
+- [x] 4.4 Perturbation tree (perturbation_tree.py: TreeNode, PerturbationTree, build_root, expand_node, JSON serialization)
+- [x] 4.5 Sensitivity / diff view (sensitivity.py: DiffResult, compute_diff with rank displacement)
+- [x] 4.6 Pipeline script (pipeline_phase4.py: end-to-end with sample fact sheet)
+- [x] 4.7 No new requirements needed (all deps already present)
+- [x] Verification: 29 perturbations for sample case, IPC-302 adjacent=[300,304,304A,307], diff correct, tree round-trip OK
