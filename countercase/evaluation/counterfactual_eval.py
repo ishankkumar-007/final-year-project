@@ -50,6 +50,10 @@ from typing import Any
 
 from countercase.counterfactual.perturbation_tree import PerturbationTree
 from countercase.counterfactual.sensitivity import compute_sensitivity_scores
+from countercase.counterfactual.llm_validator import (
+    PerturbationValidator,
+    mock_validation_llm_fn,
+)
 from countercase.fact_extraction.schema import FactSheet
 
 logger = logging.getLogger(__name__)
@@ -163,8 +167,19 @@ def evaluate_single_case(
 
     # Build tree if not provided
     if tree is None:
-        tree = PerturbationTree(root_fact_sheet=fact_sheet)
-        tree.expand_tree(max_depth=max_depth, max_children=max_children)
+        tree = PerturbationTree(retriever=None, top_k=k)
+        try:
+            from countercase.retrieval.hybrid_retriever import HybridRetriever
+            tree = PerturbationTree(retriever=HybridRetriever(), top_k=k)
+        except Exception:
+            pass
+        tree.build_root(fact_sheet)
+        validator = PerturbationValidator(llm_fn=mock_validation_llm_fn)
+        tree.expand_tree(
+            validator=validator,
+            max_depth=max_depth,
+            max_children_per_node=max_children,
+        )
 
     result.tree_node_count = len(tree._nodes)
 

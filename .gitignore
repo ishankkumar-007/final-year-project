@@ -39,6 +39,9 @@ countercase/output/
 *.faiss
 *.pkl
 
+# Evaluation results (regenerable)
+countercase/evaluation/results/
+
 # Jupyter
 .ipynb_checkpoints/
 

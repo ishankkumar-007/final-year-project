@@ -1,0 +1,89 @@
+[
+    {
+        "fact_sheet": {
+            "case_id": "Criminal Appeal No. 1031",
+            "parties": {
+                "petitioner_type": "Individual",
+                "respondent_type": "State"
+            },
+            "evidence_items": [
+                {"evidence_type": "Confession", "description": "Confession statement"},
+                {"evidence_type": "FIR", "description": "First Information Report"},
+                {"evidence_type": "PostMortem", "description": "Post-mortem report"},
+                {"evidence_type": "Witness", "description": "Witness testimony"}
+            ],
+            "sections_cited": ["IPC-302", "IPC-34"],
+            "numerical_facts": {
+                "amounts": [],
+                "ages": [{"value": 35, "descriptor": "accused"}],
+                "durations": [{"value": 10, "unit": "years", "descriptor": "sentence"}]
+            },
+            "outcome": "Dismissed"
+        },
+        "dispositive_facts": ["Section", "Evidence"],
+        "non_dispositive_facts": ["Numerical", "PartyType"],
+        "expert_importance_ranking": {
+            "Section": 1,
+            "Evidence": 2,
+            "PartyType": 3,
+            "Numerical": 4
+        }
+    },
+    {
+        "fact_sheet": {
+            "case_id": "Criminal Appeal No. 2045",
+            "parties": {
+                "petitioner_type": "Individual",
+                "respondent_type": "State"
+            },
+            "evidence_items": [
+                {"evidence_type": "FIR", "description": "First Information Report"},
+                {"evidence_type": "Witness", "description": "Witness testimony"},
+                {"evidence_type": "DocumentaryEvidence", "description": "Medical records"}
+            ],
+            "sections_cited": ["IPC-34", "IPC-27", "IPC-302", "IPC-307"],
+            "numerical_facts": {
+                "amounts": [],
+                "ages": [],
+                "durations": []
+            },
+            "outcome": "Allowed"
+        },
+        "dispositive_facts": ["Section"],
+        "non_dispositive_facts": ["PartyType", "Numerical"],
+        "expert_importance_ranking": {
+            "Section": 1,
+            "Evidence": 2,
+            "Numerical": 3,
+            "PartyType": 4
+        }
+    },
+    {
+        "fact_sheet": {
+            "case_id": "Writ Petition No. 512",
+            "parties": {
+                "petitioner_type": "Corporation",
+                "respondent_type": "State"
+            },
+            "evidence_items": [
+                {"evidence_type": "DocumentaryEvidence", "description": "Contract documents"},
+                {"evidence_type": "ExpertOpinion", "description": "Valuation report"}
+            ],
+            "sections_cited": ["IPC-420", "IPC-406"],
+            "numerical_facts": {
+                "amounts": [{"value": 5000000, "currency": "INR", "descriptor": "disputed amount"}],
+                "ages": [],
+                "durations": [{"value": 3, "unit": "years", "descriptor": "contract period"}]
+            },
+            "outcome": "Dismissed"
+        },
+        "dispositive_facts": ["Section", "Numerical"],
+        "non_dispositive_facts": ["PartyType"],
+        "expert_importance_ranking": {
+            "Section": 1,
+            "Numerical": 2,
+            "Evidence": 3,
+            "PartyType": 4
+        }
+    }
+]

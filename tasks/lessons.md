@@ -36,3 +36,15 @@
 - **Sensitivity scores need retrieval results**: All four dimension scores are 0.0 when retriever is None. With mock injected results, Numerical=0.70 while others=0.0 since only Numerical edges were created. This is correct behavior.
 - **Streamlit session_state for tree persistence**: The tree must be stored in st.session_state to survive page switches. Using @st.cache_resource only for heavy objects like the retriever.
 - **Streamlit sys.path fix required**: Streamlit runs scripts from its own process and does not inherit the project directory on sys.path. Must add `sys.path.insert(0, project_root)` at the top of the app file before any `countercase` imports, using `Path(__file__).resolve().parents[2]` to locate the project root.
+
+## Phase 6
+
+- **Arrow mixed types in DataFrames**: Streamlit/pyarrow rejects columns mixing int and str. When a rank column may have int values and "-" for missing, convert all values to `str()` consistently.
+- **Path resolution with parents[]**: `Path(__file__).resolve().parents[0]` is the file's own directory, `parents[1]` is one level up. Easy to mix up — always verify by printing the resolved path.
+
+## Phase 7
+
+- **Evaluation data files must be created before running eval CLIs**: The eval harness, counterfactual eval, and explanation eval all load JSON/CSV input files that don't exist by default. Each needs a generation step first: test_set.json from pipeline queries, explanations.json from the retrieval+explanation pipeline, cf_eval_set.json with annotated fact sheets, and human_eval_filled.csv with Likert scores.
+- **PerturbationTree API mismatch**: `PerturbationTree.__init__` takes `(retriever, top_k)`, not `root_fact_sheet`. Must call `build_root(fact_sheet)` then `expand_tree(validator=..., max_depth=..., max_children_per_node=...)` separately. The validator requires importing `PerturbationValidator` + `mock_validation_llm_fn` from `llm_validator`.
+- **Faithfulness scoring requires metadata as source texts**: Template-based explanations reference fact sheet metadata (party types, sections) not chunk text. The source_texts list must include both chunk text AND metadata strings for word-overlap grounding to work. Without metadata sources, faithfulness is 0.0.
+- **PowerShell f-string quoting**: Inline Python f-strings with dict access like `result["key"]` break in PowerShell due to quote escaping. Use `%` formatting or write to a script file instead.

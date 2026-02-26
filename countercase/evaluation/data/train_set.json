@@ -1,0 +1,47 @@
+[
+  {
+    "query_case_id": "phase2_demo",
+    "query_text": "criminal appeal murder IPC 302 conviction sentence",
+    "relevant_case_ids": [
+      "2026_1_119_129_EN_2026",
+      "2026_1_91_118_EN_2026",
+      "2026_2_257_269_EN_2026",
+      "2026_1_191_205_EN_2026",
+      "2026_2_295_322_EN_2026"
+    ]
+  },
+  {
+    "query_case_id": "phase2_demo_2",
+    "query_text": "writ petition Article 21 right to life personal liberty",
+    "relevant_case_ids": [
+      "2026_1_119_129_EN_2026",
+      "2026_1_91_118_EN_2026",
+      "2026_2_257_269_EN_2026"
+    ]
+  },
+  {
+    "query_case_id": "phase2_demo_3",
+    "query_text": "service matter termination employment",
+    "relevant_case_ids": [
+      "2026_1_119_129_EN_2026",
+      "2026_1_91_118_EN_2026"
+    ]
+  },
+  {
+    "query_case_id": "phase2_demo_4",
+    "query_text": "land acquisition compensation Motor Vehicles Act",
+    "relevant_case_ids": [
+      "2026_1_119_129_EN_2026",
+      "2026_1_91_118_EN_2026"
+    ]
+  },
+  {
+    "query_case_id": "phase2_demo_5",
+    "query_text": "bail anticipatory bail criminal case section 438",
+    "relevant_case_ids": [
+      "2026_1_119_129_EN_2026",
+      "2026_1_91_118_EN_2026",
+      "2026_2_257_269_EN_2026"
+    ]
+  }
+]

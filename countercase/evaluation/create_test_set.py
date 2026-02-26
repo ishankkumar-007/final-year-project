@@ -382,6 +382,12 @@ def main() -> None:
     )
     cite_parser.add_argument("--max-cases", type=int, default=None)
     cite_parser.add_argument("--min-relevant", type=int, default=2)
+    cite_parser.add_argument(
+        "--citation-index",
+        type=str,
+        default=None,
+        help="Optional JSON mapping raw citation -> corpus case_id",
+    )
 
     # Merge sub-command
     merge_parser = sub.add_parser("merge", help="Merge multiple test sets")
@@ -411,9 +417,14 @@ def main() -> None:
         if args.fact_texts:
             with open(args.fact_texts, encoding="utf-8") as fh:
                 fact_texts = json.load(fh)
+        citation_index = None
+        if args.citation_index:
+            with open(args.citation_index, encoding="utf-8") as fh:
+                citation_index = json.load(fh)
         ts = build_citation_test_set(
             case_texts,
             fact_texts=fact_texts,
+            citation_index=citation_index,
             max_cases=args.max_cases,
             min_relevant=args.min_relevant,
         )

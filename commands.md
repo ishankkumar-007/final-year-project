@@ -215,13 +215,13 @@ python -m countercase.evaluation.explanation_eval score-human --csv countercase/
 ### Create test set from citation extraction
 
 ```powershell
-python -m countercase.evaluation.create_test_set citations --case-texts countercase/data/case_texts.json --output countercase/evaluation/data/citation_test_set.json
+python -m countercase.evaluation.create_test_set citations --case-texts countercase/data/case_texts.json --citation-index countercase/data/citation_index.json --output countercase/evaluation/data/citation_test_set.json
 ```
 
 ### Merge multiple test sets
 
 ```powershell
-python -m countercase.evaluation.create_test_set merge countercase/evaluation/data/set1.json countercase/evaluation/data/set2.json --output countercase/evaluation/data/merged.json
+python -m countercase.evaluation.create_test_set merge countercase/evaluation/data/test_set.json countercase/evaluation/data/citation_test_set.json --output countercase/evaluation/data/merged.json
 ```
 
 ### Split test set by year (train/test)
