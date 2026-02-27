@@ -176,12 +176,12 @@ def api_llm_fn(
     *,
     timeout: int = 60,
 ) -> str:
-    """Call an OpenAI-compatible API endpoint.
+    """Call an OpenAI-compatible API endpoint (default: Mistral AI).
 
-    Configuration via environment variables:
-        ``LLM_API_URL``  -- Base URL (default: ``https://api.openai.com/v1``)
-        ``LLM_API_KEY``  -- API key
-        ``LLM_API_MODEL`` -- Model name (default: ``gpt-3.5-turbo``)
+    Configuration via environment variables (or ``.env`` file):
+        ``LLM_API_URL``   -- Base URL (default: ``https://api.mistral.ai/v1``)
+        ``LLM_API_KEY``   -- API key (get from https://console.mistral.ai/api-keys)
+        ``LLM_API_MODEL`` -- Model name (default: ``open-mistral-7b``)
 
     Args:
         prompt: The full prompt string.
@@ -192,9 +192,9 @@ def api_llm_fn(
     """
     import requests
 
-    base_url = os.getenv("LLM_API_URL", "https://api.openai.com/v1")
+    base_url = os.getenv("LLM_API_URL", "https://api.mistral.ai/v1")
     api_key = os.getenv("LLM_API_KEY", "")
-    model = os.getenv("LLM_API_MODEL", "gpt-3.5-turbo")
+    model = os.getenv("LLM_API_MODEL", "open-mistral-7b")
 
     if not api_key:
         raise RuntimeError(

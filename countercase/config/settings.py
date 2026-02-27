@@ -72,6 +72,13 @@ class Settings:
     TOP_K: int = 50
     RRF_K: int = 60
 
+    # LLM configuration (Mistral API)
+    LLM_API_URL: str = field(default=None)  # type: ignore[assignment]
+    LLM_API_KEY: str = field(default=None)  # type: ignore[assignment]
+    LLM_API_MODEL: str = field(default=None)  # type: ignore[assignment]
+    LOCAL_LLM_MODEL: str = field(default=None)  # type: ignore[assignment]
+    LLM_TIMEOUT: int = 60
+
     # Output / intermediary data
     DATA_OUTPUT_DIR: Path = field(default=None)  # type: ignore[assignment]
 
@@ -86,6 +93,14 @@ class Settings:
             self.DPR_INDEX_DIR = self.REPO_ROOT / "countercase" / "data" / "dpr_index"
         if self.DATA_OUTPUT_DIR is None:
             self.DATA_OUTPUT_DIR = self.REPO_ROOT / "countercase" / "data"
+        if self.LLM_API_URL is None:
+            self.LLM_API_URL = os.getenv("LLM_API_URL", "https://api.mistral.ai/v1")
+        if self.LLM_API_KEY is None:
+            self.LLM_API_KEY = os.getenv("LLM_API_KEY", "")
+        if self.LLM_API_MODEL is None:
+            self.LLM_API_MODEL = os.getenv("LLM_API_MODEL", "open-mistral-7b")
+        if self.LOCAL_LLM_MODEL is None:
+            self.LOCAL_LLM_MODEL = os.getenv("LOCAL_LLM_MODEL", "mistralai/Mistral-7B-Instruct-v0.2")
 
 
 # Module-level singleton for convenience.

@@ -2,36 +2,36 @@
   "n_queries": 5,
   "modes": {
     "full_system": {
-      "mean_mrr_10": 0.2567,
-      "mean_ndcg_10": 0.3897,
-      "mean_recall_5": 0.8,
-      "mean_recall_10": 0.8,
-      "mean_recall_20": 0.8,
-      "mean_latency_s": 0.3019
+      "mean_mrr_10": 0.48,
+      "mean_ndcg_10": 0.4368,
+      "mean_recall_5": 0.5,
+      "mean_recall_10": 0.5,
+      "mean_recall_20": 0.5,
+      "mean_latency_s": 0.6058
     },
     "dpr_only": {
-      "mean_mrr_10": 0.6,
-      "mean_ndcg_10": 0.6,
-      "mean_recall_5": 0.6,
-      "mean_recall_10": 0.6,
-      "mean_recall_20": 0.6,
-      "mean_latency_s": 0.0622
+      "mean_mrr_10": 0.7667,
+      "mean_ndcg_10": 0.5208,
+      "mean_recall_5": 0.52,
+      "mean_recall_10": 0.56,
+      "mean_recall_20": 0.56,
+      "mean_latency_s": 0.0788
     },
     "chroma_only": {
-      "mean_mrr_10": 0.1,
-      "mean_ndcg_10": 0.1262,
-      "mean_recall_5": 0.2,
-      "mean_recall_10": 0.2,
-      "mean_recall_20": 0.2,
-      "mean_latency_s": 0.0204
+      "mean_mrr_10": 0.2667,
+      "mean_ndcg_10": 0.2112,
+      "mean_recall_5": 0.1733,
+      "mean_recall_10": 0.2133,
+      "mean_recall_20": 0.2133,
+      "mean_latency_s": 0.036
     }
   },
   "per_query": [
     {
       "query_case_id": "phase2_demo",
       "mode": "full_system",
-      "mrr_10": 0.3333333333333333,
-      "ndcg_10": 0.5,
+      "mrr_10": 1.0,
+      "ndcg_10": 1.0,
       "recall_5": 1.0,
       "recall_10": 1.0,
       "recall_20": 1.0,
@@ -44,16 +44,16 @@
         "2026_1_141_166_EN_2026",
         "2026_2_257_269_EN_2026"
       ],
-      "latency_s": 0.3121
+      "latency_s": 0.5376
     },
     {
       "query_case_id": "phase2_demo_2",
       "mode": "full_system",
       "mrr_10": 0.2,
-      "ndcg_10": 0.38685280723454163,
-      "recall_5": 1.0,
-      "recall_10": 1.0,
-      "recall_20": 1.0,
+      "ndcg_10": 0.18154179253735267,
+      "recall_5": 0.3333333333333333,
+      "recall_10": 0.3333333333333333,
+      "recall_20": 0.3333333333333333,
       "retrieved_ids": [
         "2024_10_1448_1461_EN",
         "2026_2_257_269_EN_2026",
@@ -62,16 +62,16 @@
         "2026_1_119_129_EN_2026",
         "2026_1_30_90_EN_2026"
       ],
-      "latency_s": 0.2996
+      "latency_s": 0.6058
     },
     {
       "query_case_id": "phase2_demo_3",
       "mode": "full_system",
-      "mrr_10": 0.0,
-      "ndcg_10": 0.0,
-      "recall_5": 0.0,
-      "recall_10": 0.0,
-      "recall_20": 0.0,
+      "mrr_10": 0.2,
+      "ndcg_10": 0.23719771276929622,
+      "recall_5": 0.5,
+      "recall_10": 0.5,
+      "recall_20": 0.5,
       "retrieved_ids": [
         "2026_1_1_23_EN_2026",
         "2026_1_30_90_EN_2026",
@@ -80,16 +80,16 @@
         "2026_1_91_118_EN_2026",
         "2026_1_227_302_EN_2026"
       ],
-      "latency_s": 0.3006
+      "latency_s": 0.577
     },
     {
       "query_case_id": "phase2_demo_4",
       "mode": "full_system",
-      "mrr_10": 0.25,
-      "ndcg_10": 0.43067655807339306,
-      "recall_5": 1.0,
-      "recall_10": 1.0,
-      "recall_20": 1.0,
+      "mrr_10": 0.0,
+      "ndcg_10": 0.0,
+      "recall_5": 0.0,
+      "recall_10": 0.0,
+      "recall_20": 0.0,
       "retrieved_ids": [
         "2026_1_227_302_EN_2026",
         "2026_1_1_23_EN_2026",
@@ -101,30 +101,30 @@
         "2026_2_270_284_EN_2026",
         "2026_2_285_294_EN_2026"
       ],
-      "latency_s": 0.2992
+      "latency_s": 0.6492
     },
     {
       "query_case_id": "phase2_demo_5",
       "mode": "full_system",
-      "mrr_10": 0.5,
-      "ndcg_10": 0.6309297535714575,
-      "recall_5": 1.0,
-      "recall_10": 1.0,
-      "recall_20": 1.0,
+      "mrr_10": 1.0,
+      "ndcg_10": 0.7653606369886217,
+      "recall_5": 0.6666666666666666,
+      "recall_10": 0.6666666666666666,
+      "recall_20": 0.6666666666666666,
       "retrieved_ids": [
         "2026_1_91_118_EN_2026",
         "2026_1_119_129_EN_2026"
       ],
-      "latency_s": 0.298
+      "latency_s": 0.6594
     },
     {
       "query_case_id": "phase2_demo",
       "mode": "dpr_only",
       "mrr_10": 1.0,
-      "ndcg_10": 1.0,
-      "recall_5": 1.0,
-      "recall_10": 1.0,
-      "recall_20": 1.0,
+      "ndcg_10": 0.7372449353281585,
+      "recall_5": 0.6,
+      "recall_10": 0.8,
+      "recall_20": 0.8,
       "retrieved_ids": [
         "2026_1_119_129_EN_2026",
         "2026_2_257_269_EN_2026",
@@ -133,16 +133,16 @@
         "2026_2_295_322_EN_2026",
         "2026_1_91_118_EN_2026"
       ],
-      "latency_s": 0.0315
+      "latency_s": 0.0735
     },
     {
       "query_case_id": "phase2_demo_2",
       "mode": "dpr_only",
       "mrr_10": 1.0,
-      "ndcg_10": 1.0,
-      "recall_5": 1.0,
-      "recall_10": 1.0,
-      "recall_20": 1.0,
+      "ndcg_10": 0.7039180890341347,
+      "recall_5": 0.6666666666666666,
+      "recall_10": 0.6666666666666666,
+      "recall_20": 0.6666666666666666,
       "retrieved_ids": [
         "2026_1_119_129_EN_2026",
         "2026_2_257_269_EN_2026",
@@ -151,16 +151,16 @@
         "2026_1_30_90_EN_2026",
         "2026_1_1_23_EN_2026"
       ],
-      "latency_s": 0.0312
+      "latency_s": 0.0802
     },
     {
       "query_case_id": "phase2_demo_3",
       "mode": "dpr_only",
-      "mrr_10": 0.0,
-      "ndcg_10": 0.0,
-      "recall_5": 0.0,
-      "recall_10": 0.0,
-      "recall_20": 0.0,
+      "mrr_10": 0.3333333333333333,
+      "ndcg_10": 0.3065735963827292,
+      "recall_5": 0.5,
+      "recall_10": 0.5,
+      "recall_20": 0.5,
       "retrieved_ids": [
         "2026_1_30_90_EN_2026",
         "2026_1_206_226_EN_2026",
@@ -168,16 +168,16 @@
         "2026_2_270_284_EN_2026",
         "2026_1_24_29_EN_2026"
       ],
-      "latency_s": 0.028
+      "latency_s": 0.0633
     },
     {
       "query_case_id": "phase2_demo_4",
       "mode": "dpr_only",
-      "mrr_10": 0.0,
-      "ndcg_10": 0.0,
-      "recall_5": 0.0,
-      "recall_10": 0.0,
-      "recall_20": 0.0,
+      "mrr_10": 0.5,
+      "ndcg_10": 0.38685280723454163,
+      "recall_5": 0.5,
+      "recall_10": 0.5,
+      "recall_20": 0.5,
       "retrieved_ids": [
         "2026_2_295_322_EN_2026",
         "2026_1_167_182_EN_2026",
@@ -188,31 +188,31 @@
         "2026_2_285_294_EN_2026",
         "2026_1_141_166_EN_2026"
       ],
-      "latency_s": 0.065
+      "latency_s": 0.1129
     },
     {
       "query_case_id": "phase2_demo_5",
       "mode": "dpr_only",
       "mrr_10": 1.0,
-      "ndcg_10": 1.0,
-      "recall_5": 1.0,
-      "recall_10": 1.0,
-      "recall_20": 1.0,
+      "ndcg_10": 0.46927872602275644,
+      "recall_5": 0.3333333333333333,
+      "recall_10": 0.3333333333333333,
+      "recall_20": 0.3333333333333333,
       "retrieved_ids": [
         "2026_1_119_129_EN_2026",
         "2026_1_30_90_EN_2026",
         "2026_1_1_23_EN_2026"
       ],
-      "latency_s": 0.1552
+      "latency_s": 0.064
     },
     {
       "query_case_id": "phase2_demo",
       "mode": "chroma_only",
-      "mrr_10": 0.0,
-      "ndcg_10": 0.0,
-      "recall_5": 0.0,
-      "recall_10": 0.0,
-      "recall_20": 0.0,
+      "mrr_10": 0.3333333333333333,
+      "ndcg_10": 0.29039140533630226,
+      "recall_5": 0.2,
+      "recall_10": 0.4,
+      "recall_20": 0.4,
       "retrieved_ids": [
         "2024_10_108_125_EN",
         "2024_10_1313_1343_EN",
@@ -222,7 +222,7 @@
         "2026_1_167_182_EN_2026",
         "2026_2_257_269_EN_2026"
       ],
-      "latency_s": 0.0177
+      "latency_s": 0.0424
     },
     {
       "query_case_id": "phase2_demo_2",
@@ -238,7 +238,7 @@
         "2024_10_126_149_EN",
         "2026_1_206_226_EN_2026"
       ],
-      "latency_s": 0.0281
+      "latency_s": 0.0467
     },
     {
       "query_case_id": "phase2_demo_3",
@@ -256,7 +256,7 @@
         "2026_1_1_23_EN_2026",
         "2026_2_295_322_EN_2026"
       ],
-      "latency_s": 0.0187
+      "latency_s": 0.0289
     },
     {
       "query_case_id": "phase2_demo_4",
@@ -273,21 +273,21 @@
         "2026_2_295_322_EN_2026",
         "2024_10_1381_1403_EN"
       ],
-      "latency_s": 0.0188
+      "latency_s": 0.0309
     },
     {
       "query_case_id": "phase2_demo_5",
       "mode": "chroma_only",
-      "mrr_10": 0.5,
-      "ndcg_10": 0.6309297535714575,
-      "recall_5": 1.0,
-      "recall_10": 1.0,
-      "recall_20": 1.0,
+      "mrr_10": 1.0,
+      "ndcg_10": 0.7653606369886217,
+      "recall_5": 0.6666666666666666,
+      "recall_10": 0.6666666666666666,
+      "recall_20": 0.6666666666666666,
       "retrieved_ids": [
         "2026_1_91_118_EN_2026",
         "2026_1_119_129_EN_2026"
       ],
-      "latency_s": 0.0189
+      "latency_s": 0.0313
     }
   ]
 }
