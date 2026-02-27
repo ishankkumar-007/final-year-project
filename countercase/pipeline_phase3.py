@@ -127,6 +127,10 @@ def run_pipeline(
     print("\n  Step 1: Extracting PDF texts...")
     t0 = time.perf_counter()
 
+    # Pre-load existing fact sheets so we can skip already-processed cases
+    existing_ids = set(list_fact_sheets())
+    skipped = 0
+
     case_texts: list[tuple[str, str, list]] = []  # (case_id, full_text, sections)
 
     for year in range(start_year, end_year + 1):
@@ -144,6 +148,13 @@ def run_pipeline(
             if len(case_texts) >= max_cases:
                 break
 
+            case_id = _build_case_id(pdf_file.name)
+
+            # Skip cases that already have a fact sheet in the store
+            if case_id in existing_ids:
+                skipped += 1
+                continue
+
             try:
                 pages = extract_pdf(str(pdf_file))
             except Exception as exc:
@@ -159,7 +170,6 @@ def run_pipeline(
             if not full_text.strip():
                 continue
 
-            case_id = _build_case_id(pdf_file.name)
             sections = detect_sections(full_text)
             case_texts.append((case_id, full_text, sections))
 
@@ -167,7 +177,8 @@ def run_pipeline(
             break
 
     t_extract = time.perf_counter() - t0
-    print(f"  Collected {len(case_texts)} cases in {t_extract:.1f}s\n")
+    print(f"  Collected {len(case_texts)} new cases in {t_extract:.1f}s")
+    print(f"  Skipped {skipped} cases already in fact store\n")
 
     if not case_texts:
         print("  No cases found. Exiting.")
