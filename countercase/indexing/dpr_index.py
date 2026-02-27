@@ -13,10 +13,14 @@ from typing import Any
 
 import faiss
 import numpy as np
+import torch
+from tqdm import tqdm
 
 from countercase.config.settings import settings
 
 logger = logging.getLogger(__name__)
+
+_DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 
 class DPRIndexWrapper:
@@ -67,7 +71,9 @@ class DPRIndexWrapper:
         self._q_encoder = DPRQuestionEncoder.from_pretrained(
             self._question_model_name
         )
+        self._q_encoder.to(_DEVICE)
         self._q_encoder.eval()
+        logger.info("DPR question encoder loaded on %s", _DEVICE)
 
     def _load_context_encoder(self) -> None:
         """Load the DPR context encoder and tokenizer."""
@@ -82,7 +88,9 @@ class DPRIndexWrapper:
         self._ctx_encoder = DPRContextEncoder.from_pretrained(
             self._context_model_name
         )
+        self._ctx_encoder.to(_DEVICE)
         self._ctx_encoder.eval()
+        logger.info("DPR context encoder loaded on %s", _DEVICE)
 
     # -----------------------------------------------------------------
     # Encoding helpers
@@ -97,12 +105,11 @@ class DPRIndexWrapper:
         Returns:
             A 1-D numpy array (float32) of the embedding.
         """
-        import torch
-
         self._load_question_encoder()
         inputs = self._q_tokenizer(
             text, return_tensors="pt", truncation=True, max_length=512
         )
+        inputs = {k: v.to(_DEVICE) for k, v in inputs.items()}
         with torch.no_grad():
             outputs = self._q_encoder(**inputs)
         # pooler_output: (1, dim)
@@ -118,35 +125,45 @@ class DPRIndexWrapper:
         Returns:
             A 1-D numpy array (float32) of the embedding.
         """
-        import torch
-
         self._load_context_encoder()
         inputs = self._ctx_tokenizer(
             text, return_tensors="pt", truncation=True, max_length=512
         )
+        inputs = {k: v.to(_DEVICE) for k, v in inputs.items()}
         with torch.no_grad():
             outputs = self._ctx_encoder(**inputs)
         embedding = outputs.pooler_output.squeeze(0).cpu().numpy().astype(np.float32)
         return embedding
 
     def _encode_contexts_batch(
-        self, texts: list[str], batch_size: int = 16
+        self, texts: list[str], batch_size: int | None = None
     ) -> np.ndarray:
         """Encode a batch of passages into DPR embeddings.
 
+        Uses GPU if available with a larger batch size. Shows a tqdm
+        progress bar for visibility on long encoding runs.
+
         Args:
             texts: List of passage texts.
-            batch_size: Number of passages per forward pass.
+            batch_size: Number of passages per forward pass.  Defaults
+                to 64 on CUDA, 16 on CPU.
 
         Returns:
             A 2-D numpy array of shape ``(len(texts), dim)``.
         """
-        import torch
+        if batch_size is None:
+            batch_size = 64 if _DEVICE == "cuda" else 16
 
         self._load_context_encoder()
         all_embeddings: list[np.ndarray] = []
+        n_batches = (len(texts) + batch_size - 1) // batch_size
 
-        for start in range(0, len(texts), batch_size):
+        for start in tqdm(
+            range(0, len(texts), batch_size),
+            desc="DPR encoding",
+            unit="batch",
+            total=n_batches,
+        ):
             batch = texts[start : start + batch_size]
             inputs = self._ctx_tokenizer(
                 batch,
@@ -155,6 +172,7 @@ class DPRIndexWrapper:
                 padding=True,
                 max_length=512,
             )
+            inputs = {k: v.to(_DEVICE) for k, v in inputs.items()}
             with torch.no_grad():
                 outputs = self._ctx_encoder(**inputs)
             embeddings = outputs.pooler_output.cpu().numpy().astype(np.float32)
