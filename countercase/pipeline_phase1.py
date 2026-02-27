@@ -218,11 +218,11 @@ def run_pipeline(start_year: int, end_year: int) -> None:
         return
 
     # ---- Step 3: Build dual index ----
-    logger.info("=== Step 3: Building dual index ===")
+    logger.info("=== Step 3: Building dual index (incremental) ===")
     dual = DualIndex()
-    dual.index_chunks(all_chunk_ids, all_chunk_texts, all_metadatas)
+    dual.add_chunks(all_chunk_ids, all_chunk_texts, all_metadatas)
     dual.save()
-    logger.info("Dual index built and saved")
+    logger.info("Dual index updated and saved")
 
     # ---- Step 4: Sample query with RRF ----
     logger.info("=== Step 4: Sample query with RRF fusion ===")

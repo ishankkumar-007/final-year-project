@@ -70,6 +70,33 @@ class DualIndex:
         )
         logger.info("Dual indexing complete")
 
+    def add_chunks(
+        self,
+        chunk_ids: list[str],
+        chunk_texts: list[str],
+        metadatas: list[dict[str, Any]],
+        dpr_batch_size: int = 16,
+        chroma_batch_size: int = 100,
+    ) -> None:
+        """Incrementally add chunks to both indexes.
+
+        Unlike :meth:`index_chunks`, this preserves existing data.
+        ChromaDB upserts naturally; DPR skips duplicates internally.
+
+        Args:
+            chunk_ids: Unique identifiers for each chunk.
+            chunk_texts: Text content of each chunk.
+            metadatas: Per-chunk metadata dicts for ChromaDB.
+            dpr_batch_size: Batch size for DPR encoding.
+            chroma_batch_size: Batch size for ChromaDB upserts.
+        """
+        logger.info("Incrementally adding %d chunks to dual index...", len(chunk_ids))
+        self.dpr.add_chunks(chunk_ids, chunk_texts, batch_size=dpr_batch_size)
+        self.chroma.add_chunks(
+            chunk_ids, chunk_texts, metadatas, batch_size=chroma_batch_size
+        )
+        logger.info("Incremental dual indexing complete")
+
     # -----------------------------------------------------------------
     # Querying
     # -----------------------------------------------------------------

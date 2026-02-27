@@ -172,7 +172,10 @@ class DPRIndexWrapper:
         chunk_texts: list[str],
         batch_size: int = 16,
     ) -> None:
-        """Build the FAISS index from a set of chunks.
+        """Build the FAISS index from scratch from a set of chunks.
+
+        .. warning:: This replaces the entire index.  Use
+           :meth:`add_chunks` for incremental additions.
 
         Args:
             chunk_ids: Unique identifiers for each chunk.
@@ -189,6 +192,54 @@ class DPRIndexWrapper:
         self._index.add(embeddings)
         self._id_map = list(chunk_ids)
         logger.info("FAISS index built: %d vectors, dim=%d", self._index.ntotal, dim)
+
+    def add_chunks(
+        self,
+        chunk_ids: list[str],
+        chunk_texts: list[str],
+        batch_size: int = 16,
+    ) -> None:
+        """Add chunks to an existing FAISS index (incremental).
+
+        If no index exists yet, a new one is created.  Duplicate IDs
+        are skipped automatically.
+
+        Args:
+            chunk_ids: Unique identifiers for each chunk.
+            chunk_texts: Text content of each chunk.
+            batch_size: Encoding batch size.
+        """
+        if not chunk_ids:
+            return
+
+        # Filter out IDs already in the index
+        existing = set(self._id_map)
+        new_mask = [cid not in existing for cid in chunk_ids]
+        new_ids = [cid for cid, keep in zip(chunk_ids, new_mask) if keep]
+        new_texts = [txt for txt, keep in zip(chunk_texts, new_mask) if keep]
+
+        if not new_ids:
+            logger.info("All %d chunks already in DPR index, nothing to add", len(chunk_ids))
+            return
+
+        logger.info(
+            "Encoding %d new chunks (skipped %d existing) with DPR context encoder...",
+            len(new_ids), len(chunk_ids) - len(new_ids),
+        )
+        embeddings = self._encode_contexts_batch(new_texts, batch_size=batch_size)
+        faiss.normalize_L2(embeddings)
+
+        if self._index is None:
+            dim = embeddings.shape[1]
+            self._index = faiss.IndexFlatIP(dim)
+            logger.info("Created new FAISS index, dim=%d", dim)
+
+        self._index.add(embeddings)
+        self._id_map.extend(new_ids)
+        logger.info(
+            "DPR index updated: %d total vectors (+%d new)",
+            self._index.ntotal, len(new_ids),
+        )
 
     # -----------------------------------------------------------------
     # Querying
