@@ -8,6 +8,36 @@ Quick-reference for running each phase of the project.
 conda activate torch2
 ```
 
+## Helper Scripts
+
+### Extract judgment PDFs from tar archives
+
+```powershell
+# Windows
+powershell -File .\extract-judgments.ps1 -StartYear 2024 -EndYear 2025
+
+# Linux/macOS
+./extract-judgments.sh 2024 2025
+```
+
+### Run Phase 7 evaluation suite
+
+```powershell
+# Windows -- all steps
+.\run-phase7.ps1
+
+# Windows -- specific steps only
+.\run-phase7.ps1 -Steps "retrieval,counterfactual"
+
+# Linux/macOS -- all steps
+./run-phase7.sh
+
+# Linux/macOS -- specific steps only
+./run-phase7.sh --steps retrieval,counterfactual
+```
+
+---
+
 ## Phase 1 -- Data Infrastructure and Baseline Retrieval
 
 ### Extract judgment PDFs from tar archives
@@ -145,6 +175,7 @@ streamlit run countercase/app/streamlit_app.py
 ```
 
 Output: perturbation tree saved to `countercase/output/phase5_tree.json`
+
 ## Phase 6 -- Explanation Engine and Output Format
 
 ### Run Phase 6 pipeline (explanations, JSON + Markdown export)
@@ -165,6 +196,13 @@ python -m countercase.pipeline_phase6 --case-id "Criminal Appeal 1031/2024"
 python -m countercase.pipeline_phase6 --max-depth 2 --max-children 5
 ```
 
+### Run via helper script (Windows)
+
+```powershell
+.\run-phase6.ps1
+.\run-phase6.ps1 -CaseId "Criminal Appeal 1031/2024" -MaxDepth 3 -LaunchUI
+```
+
 ### Launch the Streamlit UI (includes export buttons)
 
 ```powershell
@@ -174,6 +212,26 @@ streamlit run countercase/app/streamlit_app.py
 Output: `countercase/output/phase6_tree.json`, `countercase/output/phase6_report.md`
 
 ## Phase 7 -- Evaluation, Ablation, and Research Writeup
+
+### Run all Phase 7 steps via helper script
+
+```powershell
+# Windows
+.\run-phase7.ps1
+
+# Linux/macOS
+./run-phase7.sh
+```
+
+### Run specific evaluation steps only
+
+```powershell
+# Windows
+.\run-phase7.ps1 -Steps "retrieval,counterfactual,aggregate"
+
+# Linux/macOS
+./run-phase7.sh --steps retrieval,counterfactual,aggregate
+```
 
 ### Run full retrieval evaluation with t-tests, LaTeX, and chart
 
