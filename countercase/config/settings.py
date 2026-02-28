@@ -70,7 +70,7 @@ class Settings:
 
     # Retrieval
     TOP_K: int = 50
-    RRF_K: int = 60
+    RRF_K: int = 20
 
     # LLM configuration (Mistral API)
     LLM_API_URL: str = field(default=None)  # type: ignore[assignment]

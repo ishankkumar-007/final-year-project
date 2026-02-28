@@ -229,7 +229,9 @@ class PerturbationTree:
         candidates: list[tuple[FactSheet, PerturbationEdge]] = []
 
         # NER-based candidates for numerical and section perturbations
-        facts_text = _fact_sheet_to_query(fact_sheet)
+        from countercase.retrieval.query_builder import fact_sheet_to_query
+
+        facts_text = fact_sheet_to_query(fact_sheet)
         spans = tag_perturbation_candidates(facts_text)
 
         for span in spans:
@@ -559,7 +561,9 @@ class PerturbationTree:
         if self._retriever is None:
             return []
 
-        query = _fact_sheet_to_query(fact_sheet)
+        from countercase.retrieval.query_builder import fact_sheet_to_query
+
+        query = fact_sheet_to_query(fact_sheet)
         try:
             return self._retriever.retrieve(query, top_k=self._top_k)
         except Exception:
@@ -567,58 +571,3 @@ class PerturbationTree:
                 "Retrieval failed for case %s", fact_sheet.case_id,
             )
             return []
-
-
-# -------------------------------------------------------------------
-# Query construction from fact sheet
-# -------------------------------------------------------------------
-
-def _fact_sheet_to_query(fact_sheet: FactSheet) -> str:
-    """Convert a fact sheet to a structured query string for retrieval.
-
-    Concatenates party types, sections cited, numerical facts summary,
-    and evidence items into a single query string.
-    """
-    parts: list[str] = []
-
-    # Party types
-    pet = fact_sheet.parties.petitioner_type or "Unknown"
-    resp = fact_sheet.parties.respondent_type or "Unknown"
-    if pet != "Unknown" or resp != "Unknown":
-        parts.append(f"Petitioner: {pet}, Respondent: {resp}")
-
-    # Sections cited
-    if fact_sheet.sections_cited:
-        parts.append("Sections: " + ", ".join(fact_sheet.sections_cited))
-
-    # Numerical facts
-    nf = fact_sheet.numerical_facts
-    if nf.amounts:
-        amt_strs = [
-            f"{a.get('value', 0)} {a.get('unit', 'rupees')}"
-            for a in nf.amounts
-        ]
-        parts.append("Amounts: " + ", ".join(amt_strs))
-    if nf.ages:
-        age_strs = [
-            f"age {a.get('value', 0)} ({a.get('descriptor', '')})"
-            for a in nf.ages
-        ]
-        parts.append("Ages: " + ", ".join(age_strs))
-    if nf.durations:
-        dur_strs = [
-            f"{d.get('value', 0)} {d.get('unit', 'years')}"
-            for d in nf.durations
-        ]
-        parts.append("Durations: " + ", ".join(dur_strs))
-
-    # Evidence items
-    if fact_sheet.evidence_items:
-        ev_strs = [e.evidence_type for e in fact_sheet.evidence_items]
-        parts.append("Evidence: " + ", ".join(ev_strs))
-
-    # Outcome
-    if fact_sheet.outcome:
-        parts.append(f"Outcome: {fact_sheet.outcome}")
-
-    return ". ".join(parts) if parts else fact_sheet.case_id
