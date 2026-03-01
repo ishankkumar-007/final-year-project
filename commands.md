@@ -2,9 +2,13 @@
 
 Quick-reference for running each phase of the project.
 
+> **Note:** All `python -m` and `streamlit run` commands are cross-platform and work
+> identically in PowerShell, Bash, and Zsh. Shell-specific variants are shown only
+> for helper scripts (`.ps1` / `.sh`).
+
 ## Environment Setup
 
-```powershell
+```shell
 conda activate torch2
 ```
 
@@ -43,7 +47,11 @@ powershell -File .\extract-judgments.ps1 -StartYear 2024 -EndYear 2025
 ### Extract judgment PDFs from tar archives
 
 ```powershell
+# Windows
 powershell -File .\extract-judgments.ps1 -StartYear 2024 -EndYear 2025
+
+# Linux/macOS
+./extract-judgments.sh 2024 2025
 ```
 
 ### Run full Phase 1 pipeline (extract, chunk, index, query)
@@ -196,11 +204,17 @@ python -m countercase.pipeline_phase6 --case-id "Criminal Appeal 1031/2024"
 python -m countercase.pipeline_phase6 --max-depth 2 --max-children 5
 ```
 
-### Run via helper script (Windows)
+### Run via helper script
 
 ```powershell
+# Windows
 .\run-phase6.ps1
 .\run-phase6.ps1 -CaseId "Criminal Appeal 1031/2024" -MaxDepth 3 -LaunchUI
+
+# Linux/macOS (direct commands)
+python -m countercase.pipeline_phase6
+python -m countercase.pipeline_phase6 --case-id "Criminal Appeal 1031/2024" --max-depth 3
+streamlit run countercase/app/streamlit_app.py
 ```
 
 ### Launch the Streamlit UI (includes export buttons)
